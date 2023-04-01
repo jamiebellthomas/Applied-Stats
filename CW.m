@@ -56,7 +56,7 @@ p_2_hand = (1-tcdf(t_2,dof))
 % State what you find and discuss why this can only be
 % an approximation.
 
-% For this, I'm thinking create a 95% t-Confidence interval for the drug
+% For this, I'm thinking create a 95% t-Confidence (WE NEED TO LOOK INTO BOOSTING) interval for the drug
 % and placebo data. To obtian a upper and lower bound for the percentage
 % difference at this same level compute the the highest possible percentage
 % difference (drug UB and placebo LB) aswell as the lowest possible
@@ -76,12 +76,12 @@ p_2_hand = (1-tcdf(t_2,dof))
 %%
 %(c)
 %Compile the datasets
-compiled = [placebo30;placebo20;drugs30;drugs20]
+compiled = [placebo30;placebo20;drugs30;drugs20];
 %Define number of bins and their midpoints using code from week 2 worksheet
-bins = 19
+bins = 19;
 bin_edges = min(compiled):(max(compiled)-min(compiled))/bins: max(compiled);
-bin_midpoints = (bin_edges(1: end-1) + bin_edges(2: end)) / 2
-[c, edges] = histcounts(compiled, bin_edges)
+bin_midpoints = (bin_edges(1: end-1) + bin_edges(2: end)) / 2;
+[c, edges] = histcounts(compiled, bin_edges);
 y = zeros(1, length(c));
 for i = 1:length(c)
     y(i) = c(i) / (length(compiled) * (bin_edges(i+1) - bin_edges(i)));
@@ -106,9 +106,9 @@ ub = [1 Inf Inf Inf Inf];
 % Raise max iterations or algorithm doesn't converge in time
 options = statset('MaxIter',300,'MaxFunEvals',600);
 % Use mle to get the parameters
-paramEsts = mle(compiled,'pdf',pdf_normmix,'Start',start,'LowerBound',lb,'UpperBound',ub,'Options',options)
+paramEsts = mle(compiled,'pdf',pdf_normmix,'Start',start,'LowerBound',lb,'UpperBound',ub,'Options',options);
 % Set up created distribution so it can be plotted
-xgrid = linspace(0.7*min(compiled),1.1*max(compiled),200);
+xgrid = linspace(0.8*min(compiled),1.1*max(compiled),200);
 pdfgrid = pdf_normmix(xgrid,paramEsts(1),paramEsts(2),paramEsts(3),paramEsts(4),paramEsts(5));
 % Plot the historgram
 histogram(compiled, 'BinEdges', bin_edges, 'normalization', 'pdf');
@@ -120,9 +120,32 @@ legend('Population PDF','Fitted Bimodal Distribution')
 title('PDF') % title for plot
 xlabel('outcomes') % x-axis label
 ylabel('PDF') % y-axis label
+%%
+%(d)
 
 
 
+%Write a statistical critique of the study described above, referring to your answers in
+%questions 1(a)-(c). Provide your critique in bullet points, not continuous text. You should
+%discuss positives, negatives, and possible improvements for the study.
+
+%a) 
+% - Results from part a) verify initial hypothesis. Candidates that scored
+% highly in the screening responded to the drug much more on average
+% whereas the candidates that scored lower, on average were unaffected by
+% the drug. 
+
+% - To improve the accuracy, increase the number of participants taking part
+% in the experiment. Increasing sample size increases decreases sample
+% distribution varience making significant statistican changes more
+% observable.
+
+%b) 
+
+% - This method effectively encapsulates the confidence interval of
+% percentage differences to 95% for the samples at hand
+
+% - However it requires the 
 
 
 
