@@ -22,10 +22,10 @@ x_bar = mean(drugs30);
 y_bar = mean(placebo30);
 s_x = std(drugs30);
 s_y = std(placebo30);
-t = (mean(drugs20)-mean(placebo20))/sqrt(((n-1)*(std(drugs20))^2+(n-1)*(std(placebo20))^2)/380);
-p_hand = (1-tcdf(t,dof))
-t_2 = (x_bar-y_bar)/sqrt(((n-1)*(s_x)^2+(n-1)*(s_y)^2)/(10*dof));
-p_2_hand = (1-tcdf(t_2,dof))
+t_20 = (mean(drugs20)-mean(placebo20))/sqrt(((n-1)*(std(drugs20))^2+(n-1)*(std(placebo20))^2)/380);
+p_hand_20 = (1-tcdf(t_20,dof))
+t_30 = (x_bar-y_bar)/sqrt(((n-1)*(s_x)^2+(n-1)*(s_y)^2)/(10*dof));
+p_hand_30 = (1-tcdf(t_30,dof))
 
 % reject H_0 for 20-20 therefore significantly mean is significantly 
 % higher, you would reject it at any level (Its a near impossibility that
@@ -35,8 +35,8 @@ p_2_hand = (1-tcdf(t_2,dof))
 % decreases in drug dataset
 
 
-[h,p] = ttest2(drugs20,placebo20, "Tail","right","Vartype","unequal")
-[h_2,p_2] = ttest2(drugs30,placebo30, "Tail","right","Vartype","unequal")
+[h_20,p_20] = ttest2(drugs20,placebo20, "Tail","right","Vartype","unequal")
+[h_30,p_30] = ttest2(drugs30,placebo30, "Tail","right","Vartype","unequal")
 
 
 
@@ -56,7 +56,7 @@ p_2_hand = (1-tcdf(t_2,dof))
 % State what you find and discuss why this can only be
 % an approximation.
 
-% For this, I'm thinking create a 95% t-Confidence (WE NEED TO LOOK INTO BOOSTING) interval for the drug
+% For this, I'm thinking create a 95% t-Confidence (WE NEED TO LOOK INTO BOOSTING AND WETHER OR NOT IT IS BETTER AND JUSTIFY) interval for the drug
 % and placebo data. To obtian a upper and lower bound for the percentage
 % difference at this same level compute the the highest possible percentage
 % difference (drug UB and placebo LB) aswell as the lowest possible
@@ -78,7 +78,7 @@ p_2_hand = (1-tcdf(t_2,dof))
 %Compile the datasets
 compiled = [placebo30;placebo20;drugs30;drugs20];
 %Define number of bins and their midpoints using code from week 2 worksheet
-bins = 19;
+bins = 14;
 bin_edges = min(compiled):(max(compiled)-min(compiled))/bins: max(compiled);
 bin_midpoints = (bin_edges(1: end-1) + bin_edges(2: end)) / 2;
 [c, edges] = histcounts(compiled, bin_edges);
@@ -104,7 +104,7 @@ start = [pStart muStart sigmaStart sigmaStart];
 lb = [0 -Inf -Inf 0 0];
 ub = [1 Inf Inf Inf Inf];
 % Raise max iterations or algorithm doesn't converge in time
-options = statset('MaxIter',300,'MaxFunEvals',600);
+options = statset('MaxIter',400,'MaxFunEvals',800);
 % Use mle to get the parameters
 paramEsts = mle(compiled,'pdf',pdf_normmix,'Start',start,'LowerBound',lb,'UpperBound',ub,'Options',options);
 % Set up created distribution so it can be plotted
@@ -114,7 +114,9 @@ pdfgrid = pdf_normmix(xgrid,paramEsts(1),paramEsts(2),paramEsts(3),paramEsts(4),
 histogram(compiled, 'BinEdges', bin_edges, 'normalization', 'pdf');
 hold on
 % Plot the hypothetical distribution
-plot(xgrid,pdfgrid,'-')
+plot(xgrid,pdfgrid,'-','LineWidth',2.5)
+xline(paramEsts(2),'-',{'\mu_1'});
+xline(paramEsts(3),'-',{'\mu_2'})
 %Label the graph
 legend('Population PDF','Fitted Bimodal Distribution')
 title('PDF') % title for plot
@@ -143,9 +145,15 @@ ylabel('PDF') % y-axis label
 %b) 
 
 % - This method effectively encapsulates the confidence interval of
-% percentage differences to 95% for the samples at hand
+% percentage differences meaning there is a 95% chance that the average
+% percentage difference sits inside this range
 
-% - However it requires the 
+% - It is not guaranteed that the population mean sits in this interval,
+% is an estimate.
+
+%c)
+
+%
 
 
 
