@@ -3,15 +3,13 @@
 % Let's start with reproducing the the 20% value they gave us in the
 % question
 % Read in data as vectors
+clc
+clear
+rng('default')
 placebo20 = readmatrix("placebo20.txt");
 drugs20 = readmatrix("drugs20.txt");
 placebo30 = readmatrix("placebo30.txt");
 drugs30 = readmatrix("drugs30.txt");
-%%
-[diff20, abs_diff20] = difference(placebo20,drugs20);
-[diff30, abs_diff30] = difference(placebo30,drugs30);
-% This shows, on average, there is very little difference between the drugs
-% and placebo groups, with an average percentage decrease of 0.7986
 
 %%
 %Let's try a t-test instead (because they use the wors significance)
@@ -27,7 +25,7 @@ p_hand_20 = (1-tcdf(t_20,dof))
 t_30 = (x_bar-y_bar)/sqrt(((n-1)*(s_x)^2+(n-1)*(s_y)^2)/(10*dof));
 p_hand_30 = (1-tcdf(t_30,dof))
 
-% reject H_0 for 20-20 therefore significantly mean is significantly 
+% reject H_0 for 20-20 significantly mean is significantly 
 % higher, you would reject it at any level (Its a near impossibility that
 % H_0 is true. 
 
@@ -72,8 +70,70 @@ p_hand_30 = (1-tcdf(t_30,dof))
 % distribution as a normal distribution, only provides accurate
 % approximations when n > 30 roughly. Therefore t CIs produced in this way
 % won't be entirely accurate. 
+n = 10;
+S = 1000;
+db = []
+for i = 1:1000
+% Take a random sample of 20 from the compiled drugs and placebo vectors
+drug_sample = randsample([drugs30;drugs20],20);
+placebo_sample = randsample([placebo30;placebo20],20);
+
+% Initialise bootstrap estimate matrices for the drug and placebo samples
+bootstrap_ests_drugs = zeros(1, S);
+bootstrap_ests_placebo = zeros(1, S);
+for i = 1:S
+    % Draw a sample with replacement from the drug sample vector
+    drug_bsample = datasample(drug_sample, n);
+    % Append the mean of this sample to the drug boostrap estimates
+    bootstrap_ests_drugs(i) = mean(drug_bsample);
+    % Repeat for placebo data
+    placebo_bsample = datasample(placebo_sample, n);
+    bootstrap_ests_placebo(i) = mean(placebo_bsample);
+end
+alpha = 0.95;
+%Create confidence intervals for the drug and placebo bootstrap
+% distributions
+bCI_drugs = quantile(bootstrap_ests_drugs, [alpha/2 1-alpha/2]);
+bCI_placebo = quantile(bootstrap_ests_placebo, [alpha/2 1-alpha/2]);
+% Work out the the upper and lower bound for the percentage difference
+% between these intervals
+upper_pd = 100*(bCI_drugs(2) - bCI_placebo(1))/ bCI_placebo(1);
+lower_pd = 100*(bCI_drugs(1) - bCI_placebo(2))/ bCI_placebo(2);
+CI_pd = [lower_pd upper_pd (upper_pd - lower_pd)];
+db = [db;CI_pd];
+end
+%These results show the 95% confidence interval for the percentage 
+% difference between the drug and placebo groups is approximately 1-2
+% percent
+
+% There are a few reasons why this value is only an approximation:
+
+% - The bootstrap samples are now selected at random from the initial 
+% participant pool. This means where will be an random spread of screening
+% scores in the random sample. Subsequently this sample may not be representitive
+% of the population. If a sample of generally high drug scores and low
+% placebo scores are selected a significantly higher and narrower
+% confidence interval would be reported. 
+
+% - Bootstrapping is not representitive of the population parameters but 
+% rather the sample parameters. If a sample that is not representitive of
+% the population were drawn, this would be reflected in the confidene
+% interval
+
+% - A small sample size will lead to a larger variability in the 
+% bootstrapped sample statistics.
 
 %%
+bins = 30
+histogram(db(:,2),bins)
+hold on
+histogram(db(:,1),bins)
+histogram(db(:,3),bins)
+legend('Upper Bound', 'Lower Bound','Range')
+
+
+%%
+clf
 %(c)
 %Compile the datasets
 compiled = [placebo30;placebo20;drugs30;drugs20];
@@ -142,6 +202,10 @@ ylabel('PDF') % y-axis label
 % distribution varience making significant statistican changes more
 % observable.
 
+% - Talk about the sampling method (Week 21 lecture 2) 
+% consider stratified sampling to ensure different demographics are
+% accounted for in the study. 
+
 %b) 
 
 % - This method effectively encapsulates the confidence interval of
@@ -152,8 +216,8 @@ ylabel('PDF') % y-axis label
 % is an estimate.
 
 %c)
-
-%
+%COME BACK TO THIS
+%%
 
 
 
