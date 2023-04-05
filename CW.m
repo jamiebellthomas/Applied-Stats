@@ -73,7 +73,7 @@ p_hand_30 = (1-tcdf(t_30,dof))
 n = 10;
 S = 1000;
 db = []
-for i = 1:1000
+for j = 1:1000
 % Take a random sample of 20 from the compiled drugs and placebo vectors
 drug_sample = randsample([drugs30;drugs20],20);
 placebo_sample = randsample([placebo30;placebo20],20);
@@ -90,7 +90,7 @@ for i = 1:S
     placebo_bsample = datasample(placebo_sample, n);
     bootstrap_ests_placebo(i) = mean(placebo_bsample);
 end
-alpha = 0.95;
+alpha = 0.05;
 %Create confidence intervals for the drug and placebo bootstrap
 % distributions
 bCI_drugs = quantile(bootstrap_ests_drugs, [alpha/2 1-alpha/2]);
@@ -102,9 +102,13 @@ lower_pd = 100*(bCI_drugs(1) - bCI_placebo(2))/ bCI_placebo(2);
 CI_pd = [lower_pd upper_pd (upper_pd - lower_pd)];
 db = [db;CI_pd];
 end
-%These results show the 95% confidence interval for the percentage 
-% difference between the drug and placebo groups is approximately 1-2
-% percent
+min(db(:,3))
+max(db(:,3))
+min(db(:,1))
+max(db(:,2))
+%These results show the width of the 95% confidence interval for the 
+% percentage difference between the drug and placebo groups is 
+% approximately 29-46 percent
 
 % There are a few reasons why this value is only an approximation:
 
@@ -146,7 +150,7 @@ y = zeros(1, length(c));
 for i = 1:length(c)
     y(i) = c(i) / (length(compiled) * (bin_edges(i+1) - bin_edges(i)));
 end
-% We now have the historgram data. Let's fir a distribution to it
+% We now have the historgram data. Let's fit a distribution to it
 % This code is straight of mathworks. It'll need to be adapted for final
 % version
 
@@ -218,16 +222,83 @@ ylabel('PDF') % y-axis label
 %c)
 %COME BACK TO THIS
 %%
+%Q2
+clear
+walk_data1 = readmatrix("walk_data1.txt");
+walk_data2 = readmatrix("walk_data2.txt");
+range = 1:length(walk_data1)
+scatter(range,walk_data1,1)
+hold on 
+scatter(range,walk_data2,1)
+
+xlabel('Time Step') % x-axis label
+ylabel('Distance') % y-axis label
+
+m1 = fitlm(range,walk_data1,'linear')
+m2 = fitlm(range,walk_data2,'linear')
+
+m1_predictions = (m1.Coefficients{2,1}.*range)+m1.Coefficients{1,1};
+m2_predictions = (m2.Coefficients{2,1}.*range)+m1.Coefficients{2,1};
+%plot(range,m1_predictions)
+%plot(range,m2_predictions)
+
+%%
+
+plotResiduals(m1,"lagged")
+%%
+% Let's test something
 
 
+hold on
 
+% The equation in the question is:
+% x(t) = x(t-1) + theta
+% Where theta is a distribution. Since the data is linear, this means it is
+% normally dustributed, as the histograms show. 
+test_dist1 = fitdist(diff(walk_data1),'Normal');
+test_dist2 = fitdist(diff(walk_data2),'Normal');
+predictor1 = zeros(1,length(walk_data1));
+predictor2 = zeros(1,length(walk_data2));
+model_test1 = zeros(1,length(walk_data1));
+model_test2 = zeros(1,length(walk_data2));
+for i = range
+    predictor1(1,i) = test_dist1.mu * (i-1);
+    predictor2(1,i) = test_dist2.mu * (i);
+    if i ~= 1
+    model_test1(1,i) = model_test1(1,i-1)+normrnd(test_dist1.mu,test_dist1.sigma);
+    model_test2(1,i) = model_test2(1,i-1)+normrnd(test_dist2.mu,test_dist2.sigma);
+    end
+end
+plot(range,predictor1,'LineWidth',1.5)
+plot(range,predictor2,'LineWidth',1.5)
+plot(range,model_test1,'LineWidth',1.5)
+plot(range,model_test2,'LineWidth',1.5)
+legend('Walk Data 1', 'Walk Data 2','Predictor 1','Predictor 2','Regenerated Model 1','Regenerated Model 2')
 
+%%
+histogram(diff(walk_data2),20)
+hold on
+histogram(diff(walk_data1),20)
+gap1 = predictor1 - model_test1;
+gap2 = predictor2 - model_test2;
+%histogram(gap1,20)
+hold on
+%histogram(gap2,20)
+% Ok the logic here is we've worked out the normal distribution of the diff
+% stuff, the mu of this would give the prediction. Despite this not being a
+% best fit for the data at hand, if the data were to be regenerated, the
+% model that would be fit to the specific example in the data wouldnt be
+% appropriate (THIS IS THE JUSTIFICATION)
+% By using the mean it will be become accurate in the long run (I can show
+% this with multiple random displacement plots of the same distribution)
 
-
-
-
-
-
+% This also answers part c nicely, one mean is large and positive (fast
+% moving forward). One is small and negative (slowly moving backwards) one
+% has a high SD (sporadic changes in position) and vice versa for for low
+% SD
+%%
+%%
+%d
 
 
 
