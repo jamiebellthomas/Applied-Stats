@@ -42,9 +42,14 @@ plotResiduals(m_walk1,'lagged')
 %parameters, by iteratively building a spatial array as seen below
 walk1_fit = zeros(length(walk_data1),1);
 walk2_fit = walk1_fit;
+walk1_beta_0 = m_walk1.Coefficients{1,1}
+walk1_beta_1 = m_walk1.Coefficients{2,1}
+walk2_beta_0 = m_walk2.Coefficients{1,1}
+walk2_beta_1 = m_walk2.Coefficients{2,1}
+
 for i = 2:length(walk_data1)
-    walk1_fit(i) = (m_walk1.Coefficients{2,1}.*walk1_fit(i-1))+m_walk1.Coefficients{1,1};
-    walk2_fit(i) = (m_walk2.Coefficients{2,1}.*walk2_fit(i-1))+m_walk2.Coefficients{1,1};
+    walk1_fit(i) = (walk1_beta_1.*walk1_fit(i-1))+walk1_beta_0;
+    walk2_fit(i) = (walk2_beta_1.*walk2_fit(i-1))+walk2_beta_0;
 end
 % We can createa spatial array of predictions and plot them in the time 
 % domain to see if they are good fits for the data:
@@ -87,11 +92,8 @@ res_dis_walk2.sigma
 %% 2d) 
 N = 10000;
 sigma = 0.1;
-data = zeros(1,N-1);
-for i = 1:N
-    if i == 1
-        continue
-    end
+data = zeros(1,N);
+for i = 2:N
     if abs(data(i-1)) < 1
             data(i) = data(i-1)+normrnd(0,sigma);
             continue
@@ -100,14 +102,70 @@ for i = 1:N
     data(i) = data(i-1)+normrnd(mu,sigma);
 end
 prev_values = [0 data(1:end-1)];
-m_walk3 = fitglm(prev_values,data,"Distribution","normal");
+m_walk3 = fitlm(prev_values,data);
 
 walk3_fit = zeros(N,1);
+beta_0 = m_walk3.Coefficients{1,1};
+beta_1 = m_walk3.Coefficients{2,1};
 for i = 2:N
-    walk3_fit(i) = (m_walk3.Coefficients{2,1}.*walk3_fit(i-1))+m_walk3.Coefficients{1,1};
+    walk3_fit(i) = (beta_1.*walk3_fit(i-1))+beta_0;
 end
-%%
-scatter(1:N,data,1)
+plot(1:N,data)
 hold on
 plot(1:N, walk3_fit,"LineWidth",1,"LineStyle","--")
+legend('Simulated Data','Predictor')
+title('Simulated random walk over time with a prediction line') % title for plot
+xlabel('Time [s]') % x-axis label
+ylabel('Position') % y-axis label
+% 
+%% 2e)
+% I think this one, just add a +t to the model, this means SD of residuals
+% is dependent on fitted values. This should only violate one residual plot
 
+% Actually let's just set sigma to t and see what happens
+
+N = 10000;
+sigma = 0.1;
+data = zeros(1,N);
+% We're going to use a modified version of the function above except we're
+% going to introduce a a x(t-1) term into the response term. This will
+%  introduce heteroscedasticity into the error term
+for i = 2:N
+    if abs(data(i-1)) < 1
+            data(i) = (data(i-1)+normrnd(0,sigma)*(2*data(i-1)+2.5));
+            continue
+    end
+    mu = -0.05*data(i-1);
+    data(i) = (data(i-1)+normrnd(mu,sigma)*(2*data(i-1)+2.5));
+    
+end
+
+prev_values = [0 data(1:end-1)];
+m_walk4 = fitlm(prev_values,data)
+walk4_fit = zeros(N,1);
+beta_0 = m_walk4.Coefficients{1,1};
+beta_1 = m_walk4.Coefficients{2,1};
+
+for i = 3:N
+    walk4_fit(i) = (beta_1.*walk4_fit(i-1))+beta_0;
+end
+plot(1:N,data)
+hold on
+plot(1:N, walk4_fit,"LineWidth",1,"LineStyle","--")
+figure()
+subplot(2,2,1)
+plotResiduals(m_walk4)
+% Q-Q plot to check normality
+subplot(2,2,2)
+plotResiduals(m_walk4,'probability')
+% residuals versus fitted values
+subplot(2,2,3)
+plotResiduals(m_walk4,'fitted')
+% auto-correlation (via lagged residuals)
+subplot(2,2,4)
+plotResiduals(m_walk4,'lagged')
+% These residual plots show that the residual variance increases with the
+% size of the fitted value. This is also the only assumption that doesn't
+% hold
+%%
+histogram(m_walk3.Residuals.Raw,100)
