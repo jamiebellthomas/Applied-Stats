@@ -70,17 +70,19 @@ p_hand_30 = (1-tcdf(t_30,dof))
 % distribution as a normal distribution, only provides accurate
 % approximations when n > 30 roughly. Therefore t CIs produced in this way
 % won't be entirely accurate. 
-n = 10;
+n = 20;
 S = 1000;
 db = []
 for j = 1:1000
 % Take a random sample of 20 from the compiled drugs and placebo vectors
-drug_sample = randsample([drugs30;drugs20],20);
-placebo_sample = randsample([placebo30;placebo20],20);
-
+%drug_sample = randsample([drugs30;drugs20],20);
+%placebo_sample = randsample([placebo30;placebo20],20);
+drug_sample = [drugs30;drugs20];
+placebo_sample = [placebo30;placebo20];
 % Initialise bootstrap estimate matrices for the drug and placebo samples
 bootstrap_ests_drugs = zeros(1, S);
 bootstrap_ests_placebo = zeros(1, S);
+bootstrap_ests_pd = zeros(1, S);
 for i = 1:S
     % Draw a sample with replacement from the drug sample vector
     drug_bsample = datasample(drug_sample, n);
@@ -102,10 +104,6 @@ lower_pd = 100*(bCI_drugs(1) - bCI_placebo(2))/ bCI_placebo(2);
 CI_pd = [lower_pd upper_pd (upper_pd - lower_pd)];
 db = [db;CI_pd];
 end
-min(db(:,3))
-max(db(:,3))
-min(db(:,1))
-max(db(:,2))
 %These results show the width of the 95% confidence interval for the 
 % percentage difference between the drug and placebo groups is 
 % approximately 29-46 percent
@@ -244,43 +242,45 @@ m2_predictions = (m2.Coefficients{2,1}.*range)+m1.Coefficients{2,1};
 
 %%
 
-plotResiduals(m1,"lagged")
+plotResiduals(m1,"probability")
 %%
 % Let's test something
 
 
-hold on
+
 
 % The equation in the question is:
 % x(t) = x(t-1) + theta
 % Where theta is a distribution. Since the data is linear, this means it is
 % normally dustributed, as the histograms show. 
-test_dist1 = fitdist(diff(walk_data1),'Normal');
-test_dist2 = fitdist(diff(walk_data2),'Normal');
+walk1_dist = fitdist(diff(walk_data1),'Normal');
+walk2_dist = fitdist(diff(walk_data2),'Normal');
+for it = 1:5
 predictor1 = zeros(1,length(walk_data1));
 predictor2 = zeros(1,length(walk_data2));
 model_test1 = zeros(1,length(walk_data1));
 model_test2 = zeros(1,length(walk_data2));
 for i = range
-    predictor1(1,i) = test_dist1.mu * (i-1);
-    predictor2(1,i) = test_dist2.mu * (i);
+    predictor1(1,i) = walk1_dist.mu * (i-1);
+    predictor2(1,i) = walk2_dist.mu * (i-1);
     if i ~= 1
-    model_test1(1,i) = model_test1(1,i-1)+normrnd(test_dist1.mu,test_dist1.sigma);
-    model_test2(1,i) = model_test2(1,i-1)+normrnd(test_dist2.mu,test_dist2.sigma);
+    model_test1(1,i) = model_test1(1,i-1)+normrnd(walk1_dist.mu,walk1_dist.sigma);
+    model_test2(1,i) = model_test2(1,i-1)+normrnd(walk2_dist.mu,walk2_dist.sigma);
     end
 end
+
+plot(range,model_test1,'LineWidth',1.5)
+hold on
+plot(range,model_test2,'LineWidth',1.5)
+end
+%legend('Walk Data 1', 'Walk Data 2','Predictor 1','Predictor 2','Regenerated Model 1','Regenerated Model 2')
 plot(range,predictor1,'LineWidth',1.5)
 plot(range,predictor2,'LineWidth',1.5)
-plot(range,model_test1,'LineWidth',1.5)
-plot(range,model_test2,'LineWidth',1.5)
-legend('Walk Data 1', 'Walk Data 2','Predictor 1','Predictor 2','Regenerated Model 1','Regenerated Model 2')
-
 %%
 histogram(diff(walk_data2),20)
 hold on
 histogram(diff(walk_data1),20)
-gap1 = predictor1 - model_test1;
-gap2 = predictor2 - model_test2;
+legend('Walk Data 2 Gaps','Walk Data 1 Gaps')
 %histogram(gap1,20)
 hold on
 %histogram(gap2,20)
@@ -299,6 +299,46 @@ hold on
 %%
 %%
 %d
+
+N = 10000
+sigma = 0.1
+data = zeros(1,N-1)
+for i = 1:N-1
+    if i == 1
+        continue
+    end
+    if abs(data(i-1)) < 1
+            data(i) = data(i-1)+normrnd(0,sigma);
+            continue
+    end
+    mu = -0.05*data(i-1);
+    data(i) = data(i-1)+normrnd(mu,sigma);
+end
+
+%plot(range,data)
+hold on
+prev_values = [0 data(1:end-1)];
+
+m3 = fitglm(range,data,"Distribution","normal")
+m3_predictions = (m3.Coefficients{2,1}.*range)+m3.Coefficients{1,1};
+plot(range,m3_predictions,"LineWidth",2.5)
+
+m4 = fitglm(prev_values,data)
+m4_predictions = (m4.Coefficients{2,1}.*prev_values)+m4.Coefficients{1,1};
+plot(range,m4_predictions)
+hold on
+plot(range,data)
+legend('Predictions','True')
+%%
+plotResiduals(m4,"probability")
+%%
+scatter(prev_values,data,1)
+
+
+
+
+
+
 
 
 
