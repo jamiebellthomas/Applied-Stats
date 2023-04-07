@@ -26,6 +26,7 @@ m_walk2 = fitlm(prev_values_walk2,walk_data2,"linear");
 % If we look at the residual plots of these models, we see all model
 % assumptions hold. (This is for walk 1 - results are the same for walk 2)
 figure()
+
 subplot(2,2,1)
 plotResiduals(m_walk1)
 % Q-Q plot to check normality
@@ -37,15 +38,16 @@ plotResiduals(m_walk1,'fitted')
 % auto-correlation (via lagged residuals)
 subplot(2,2,4)
 plotResiduals(m_walk1,'lagged')
+title('Residual plots for walk 1')
 
 %Futhermore if we generate a set of predictions using the generated model
 %parameters, by iteratively building a spatial array as seen below
 walk1_fit = zeros(length(walk_data1),1);
 walk2_fit = walk1_fit;
-walk1_beta_0 = m_walk1.Coefficients{1,1}
-walk1_beta_1 = m_walk1.Coefficients{2,1}
-walk2_beta_0 = m_walk2.Coefficients{1,1}
-walk2_beta_1 = m_walk2.Coefficients{2,1}
+walk1_beta_0 = m_walk1.Coefficients{1,1};
+walk1_beta_1 = m_walk1.Coefficients{2,1};
+walk2_beta_0 = m_walk2.Coefficients{1,1};
+walk2_beta_1 = m_walk2.Coefficients{2,1};
 
 for i = 2:length(walk_data1)
     walk1_fit(i) = (walk1_beta_1.*walk1_fit(i-1))+walk1_beta_0;
@@ -54,15 +56,25 @@ end
 % We can createa spatial array of predictions and plot them in the time 
 % domain to see if they are good fits for the data:
 figure()
+subplot(1,2,1)
 scatter(range,walk_data1,1)
 hold on
 plot(range, walk1_fit,"LineWidth",1,"LineStyle","--")
 scatter(range,walk_data2,1)
 plot(range,walk2_fit,"LineWidth",1,"LineStyle","--")
 legend('Walk 1 Data','Walk 1 Prediction','Walk 2 Data','Walk 2 Prediction')
-title('Random walks over time with prediction lines') % title for plot
+title('Random walk prediction in the time domain (non-linear)') % title for plot
 xlabel('Time [s]') % x-axis label
-ylabel('Position') % y-axis label
+ylabel('x(t)') % y-axis label
+subplot(1,2,2)
+scatter(prev_values_walk2,walk_data2,1.5)
+hold on
+lm_predictions = (walk2_beta_1 * prev_values_walk2) + walk2_beta_0;
+plot(prev_values_walk2,lm_predictions,"LineWidth",1.5)
+legend('Data','Linear Model')
+title('Linear model for previous position against current position (Walk 2)')
+xlabel('x(t-1)') % x-axis label
+ylabel('x(t)') % y-axis label
 %% 2c)
 % The general form of the linear models are:
 % x(t) = beta_0 + beta_1* x(t-dt) + residual
@@ -128,15 +140,15 @@ N = 10000;
 sigma = 0.1;
 data = zeros(1,N);
 % We're going to use a modified version of the function above except we're
-% going to introduce a a x(t-1) term into the response term. This will
+% going to introduce a a x(t-1) expression into the response term. This will
 %  introduce heteroscedasticity into the error term
 for i = 2:N
     if abs(data(i-1)) < 1
-            data(i) = (data(i-1)+normrnd(0,sigma)*(2*data(i-1)+2.5));
+            data(i) = (data(i-1)+normrnd(0,sigma)*(1.5*data(i-1)+2.5));
             continue
     end
     mu = -0.05*data(i-1);
-    data(i) = (data(i-1)+normrnd(mu,sigma)*(2*data(i-1)+2.5));
+    data(i) = (data(i-1)+normrnd(mu,sigma)*(1.5*data(i-1)+2.5));
     
 end
 
@@ -167,5 +179,4 @@ plotResiduals(m_walk4,'lagged')
 % These residual plots show that the residual variance increases with the
 % size of the fitted value. This is also the only assumption that doesn't
 % hold
-%%
-histogram(m_walk3.Residuals.Raw,100)
+%% 2f)

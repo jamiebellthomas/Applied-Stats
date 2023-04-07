@@ -333,7 +333,55 @@ legend('Predictions','True')
 plotResiduals(m4,"probability")
 %%
 scatter(prev_values,data,1)
+%% Q3i)
 
+clc
+clear
+
+% This is about fitting a linear mode, we're just going to follow the
+% procedure in the lecture, the issue is generating data, the results show
+% there are two predictors and an interaction term.
+
+% Let's make a polynomial, with x,y&xy terms, and add a random normal dist
+% values, with a mean of zero, to each expression to represent residuals. 
+
+equation = @(x,y) x/5 + y/2 + x*y/10;
+[xx yy] = meshgrid(-100:5:100);
+data = equation(xx,yy);
+for i = 1:size(data,1)
+    for j = 1:size(data,2)
+        data(i,j) = data(i,j) + normrnd(0,1);
+    end
+end
+
+%mesh(xx,yy,data);
+% Now we'll randomly select x,y,data triplets. We will extract 10% 
+% of the data for now
+%First let's generate the data indicies we'll extract.
+len = size(data,1)*size(data,2);
+rand_idx = randperm(len);
+selected_idx = rand_idx(1:round(len/10));
+%Now let's extract the relevant data add store it
+variables = [];
+response = [];
+xx_1d = xx(:);
+yy_1d = yy(:);
+data_1d = data(:);
+for i = 1:length(selected_idx)
+    index = selected_idx(i);
+    variable_data = [xx_1d(index) yy_1d(index)];
+    variables = [variables;variable_data];
+    response = [response;data_1d(index)];
+end
+response = [response;0]
+variables = [variables; 0 0];
+%%
+% Step one:
+% Look at the raw data, in this case we can look at the response vs both
+% explanitory variables 
+scatter3(variables(:,1),variables(:,2),response)
+m5 = fitlm(variables,response,'interactions')
+%plotResiduals(m5,"histogram")
 
 
 

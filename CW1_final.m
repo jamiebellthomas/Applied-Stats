@@ -7,12 +7,26 @@ drugs20 = readmatrix("drugs20.txt");
 placebo30 = readmatrix("placebo30.txt");
 drugs30 = readmatrix("drugs30.txt");
 %% 1a) 
-percentage_diff = ((mean(drugs30)-mean(placebo30))/mean(placebo30))*100
+percentage_diff_20 = ((mean(drugs20)-mean(placebo20))/mean(placebo20))*100;
+percentage_diff_30 = ((mean(drugs30)-mean(placebo30))/mean(placebo30))*100;
 % Percentage difference of -0.799% between the means of the drug and
 % placebo samples respectively
-[h_30,p_30] = ttest2(drugs30,placebo30, "Tail","right","Vartype","unequal")
+[h_20,p_20] = ttest2(drugs20,placebo20, "Tail","right","Vartype","unequal");
+[h_30,p_30] = ttest2(drugs30,placebo30, "Tail","right","Vartype","unequal");
 % p_score of 59.13%. Therefore cannot reject H_0 (that mean of the drugs
 % and the placebo samples are the same)
+txt20 = sprintf('Percentage difference of %f for the scientists data', percentage_diff_20);
+txt20_h0 = sprintf('h_0 = %d for the scientists data therefore reject null hypothesis that the sample means are the same',h_20);
+txt30 = sprintf('Percentage difference of %f for the remaining data', percentage_diff_30);
+txt30_h0 = sprintf('h_0 = %d for the remaining data therefore accept null hypothesis that the sample means are the same',h_30);
+
+
+disp(txt20)
+disp(txt20_h0)
+disp("---")
+disp(txt30)
+disp(txt30_h0)
+
 %% 1b)
 % Method:
 % We're going to used a bootstrap method to create a bootstrap distribution
@@ -30,8 +44,6 @@ n = 20;
 S = 1000;
 drug_sample = [drugs30;drugs20];
 placebo_sample = [placebo30;placebo20];
-db = []
-for j = 1:S
 bootstrap_ests_pd = zeros(1, S);
 for i = 1:S
     % Draw a sample with replacement from the drug and placebo sample 
@@ -41,9 +53,7 @@ for i = 1:S
     bootstrap_ests_pd(i) = 100*(mean(drug_bsample)-mean(placebo_bsample))/mean(placebo_bsample);
 end
 alpha = 0.05;
-bCI_pd = quantile(bootstrap_ests_pd, [alpha/2 1-alpha/2]);
-db = [db;bCI_pd];
-end
+bCI_pd = quantile(bootstrap_ests_pd, [alpha/2 1-alpha/2])
 % 95% CI for percentage difference between drug and placebo data is roughly
 % 1.35% - 21.0%
 
