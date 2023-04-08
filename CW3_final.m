@@ -67,8 +67,13 @@ disp("an interaction term is a higher quality.")
 disp("---")
 % Step 3 - Check that the model assumptions hold via the
 % residual plots. These assumptions hold for the interaction linear model.
-%Step 4 - Perform hypothesis tests on each model parameter. This was
-%done by fitlm, and reflected in the p_score.
+% In the example, no residual plots were evaluated. Two of the plots for
+% the selected model are shown in the plot. These show residuals are
+% normally distributed and that the model is homoscedastic.
+% Step 4 - Perform hypothesis tests on each model parameter. This was
+% done by fitlm, and reflected in the pValue.
+% Example does not comment on the meaning of the pValue's or what they mean. 
+% This will be done noe 
 disp("- Hypothesis test looks at if each parameter coefficient  = 0 (This is the null)")
 disp("- pValue for x,y&xy = 0 therefore reject these null hypotheses")
 fprintf("- pValue for intercept term (beta_0) = %f \n",table2array(m5_int.Coefficients(1,4)))
@@ -79,6 +84,8 @@ y_coeff = table2array(m5_int.Coefficients(3,1));
 xy_coeff = table2array(m5_int.Coefficients(4,1));
 fprintf('- Linear Model Equation: Y_i = %f x_i + %f y_i + %f x_i*y_i \n', ...
     x_coeff, y_coeff, xy_coeff)
+% In the example, no effort was made to interpret the findings/evaluate the
+% linear model. This will be done now. 
 disp("Let's check the goodness of fit:")
 fitted_equation = @(x,y) x_coeff*x + y_coeff*y + x.*y * xy_coeff;
 fitted_data = fitted_equation(xx,yy);
@@ -100,7 +107,9 @@ xlabel('b')
 zlabel('response')
 title('Response is independent of a & b')
 subplot(2,2,4)
-plotResiduals(m5_int,"lagged")
+plotResiduals(m5_int,"fitted")
 disp("Model accurately captures data (it produced almost identical coefficients to the original equation)")
-
+%% 3ii)
+clc
+clear
 
