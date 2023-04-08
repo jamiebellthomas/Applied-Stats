@@ -344,9 +344,10 @@ clear
 
 % Let's make a polynomial, with x,y&xy terms, and add a random normal dist
 % values, with a mean of zero, to each expression to represent residuals. 
+domain = 10;
+equation = @(x,y) x/5 + y/2 + x.*y/10;
+[xx yy] = meshgrid(-domain:0.1:domain);
 
-equation = @(x,y) x/5 + y/2 + x*y/10;
-[xx yy] = meshgrid(-100:5:100);
 data = equation(xx,yy);
 for i = 1:size(data,1)
     for j = 1:size(data,2)
@@ -354,7 +355,7 @@ for i = 1:size(data,1)
     end
 end
 
-%mesh(xx,yy,data);
+
 % Now we'll randomly select x,y,data triplets. We will extract 10% 
 % of the data for now
 %First let's generate the data indicies we'll extract.
@@ -369,24 +370,75 @@ yy_1d = yy(:);
 data_1d = data(:);
 for i = 1:length(selected_idx)
     index = selected_idx(i);
-    variable_data = [xx_1d(index) yy_1d(index)];
+    % Now let's implement some irrelevant predictors by randomly drawing
+    % values from x and y aswell as the relevant predictors
+    random_idx = randi(length(data_1d));
+    variable_data = [xx_1d(index) yy_1d(index) xx_1d(random_idx) yy_1d(random_idx)];
+
     variables = [variables;variable_data];
     response = [response;data_1d(index)];
 end
-response = [response;0]
-variables = [variables; 0 0];
+data_table = array2table(variables,"VariableNames",["x","y","a","b"])
+data_table.response = response
 %%
 % Step one:
-% Look at the raw data, in this case we can look at the response vs both
-% explanitory variables 
-scatter3(variables(:,1),variables(:,2),response)
-m5 = fitlm(variables,response,'interactions')
-%plotResiduals(m5,"histogram")
+% Look at the raw data (scatter plots of the response vs each explanitory 
+% variable
+% I don't have the space to show it but it is clear that the response is
+% correlated to x and y from the plots and has no correlation to a and b.
 
+%Now it has been established that only two of the predictors are relevant,
+% there are two possible models that need to be considered. One which
+% includes an x-y treatment and one that does not
+m5 = fitlm(data_table,'ResponseVar','response','PredictorVars',{'x','y'})
+m5_int = fitlm(data_table,'interactions','ResponseVar','response','PredictorVars',{'x','y'})
+% Now the two models have been established, they need to be compared. There
+% are three different metrics to evaluate at this while repaining 
+% independent to the number of predictor temrs: the adjusted R^2 score 
+% the model AIC, and the LogLiklihood. 
+% Let's look at each of these scores:
+disp("---")
+fprintf("Adjusted R^2 score for model without interaction: %f \n",m5.Rsquared.Adjusted)
+fprintf("Adjusted R^2 score for model with interaction: %f \n",m5_int.Rsquared.Adjusted)
+disp("Higher adjusted R^2 score is preferred")
+disp('Model with interaction has a preferred adjusted R^2 score')
+disp("---")
+fprintf("AIC score for model without interaction: %f \n",m5.Rsquared.Adjusted)
+fprintf("AIC score for model with interaction: %f \n",m5_int.Rsquared.Adjusted)
+disp("Lower AIC score is preferred")
+disp('Model with interaction has a preferred AIC score')
+disp("---")
+fprintf("Log Likelihood score for model without interaction: %f \n",m5.LogLikelihood)
+fprintf("Log Likelihood score for model with interaction: %f \n",m5_int.LogLikelihood)
+disp("Higher Log Likelihood score is preferred")
+disp('Model with interaction has a preferred Log Likelihood score')
+disp("---")
+disp("All three measurements unanimously agree that the model that includes")
+disp("an interaction term is a higher quality.")
+% The next step is to check that the model assumptions hold via the
+% residual plots. Again, no space to plot this but all four key assumptions
+% hold up according to these plots.
 
-
-
-
+%Next step is to perform hypothesis tests on each model parameter. This was
+%done by fitlm, and reflected in the p_score.
+disp("- Hypothesis test looks at if each parameter coefficient  = 0 (This is the null)")
+disp("- pValue for x,y&xy = 0 therefore reject these null hypotheses")
+fprintf("- pValue for intercept term (beta_0) = %f \n",table2array(m5_int.Coefficients(1,4)))
+disp('- This means we accept the null hypothesis at almost any realistic significance level:')
+disp('beta_0 = 0')
+x_coeff = table2array(m5_int.Coefficients(2,1))
+y_coeff = table2array(m5_int.Coefficients(3,1))
+xy_coeff = table2array(m5_int.Coefficients(4,1))
+fprintf('- Linear Model Equation: Y_i = %f x_i + %f y_i + %f x_i*y_i \n', ...
+    x_coeff, y_coeff, xy_coeff)
+disp("Let's check the goodness of fit.")
+fitted_equation = @(x,y) x_coeff*x + y_coeff*y + x.*y * xy_coeff;
+fitted_data = fitted_equation(xx,yy);
+mesh(xx,yy,fitted_data)
+hold on
+scatter3(variables(:,1),variables(:,2),response,".","MarkerFaceColor","auto")
+disp("...")
+disp("Model accurately captures data (it produced almost identical coefficients to the original equation)")
 
 
 
