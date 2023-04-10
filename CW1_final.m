@@ -54,7 +54,7 @@ end
 alpha = 0.05;
 bCI_pd = quantile(bootstrap_ests_pd, [alpha/2 1-alpha/2])
 % 95% CI for percentage difference between drug and placebo data is roughly
-% 1.35% - 21.0%
+% 1.5% - 21.0%
 
 % This value can only be viewed as an estimate as a the bootstrap CI
 % represents the distribution of the sample (the 100 participants) and not
@@ -106,6 +106,24 @@ title('Bimodel PDF') % title for plot
 xlabel('outcomes (o)') % x-axis label
 ylabel('PDF, P(o)') % y-axis label
 %% 1d)
-%Bollocks here
+% - The objective of the study is clear. To see if screning test is
+% accurate
+% - The experiment uses a randomised control trial format. 
+% This is an effective method. The high group in the screening test saw
+% a significant difference between independent variable (drug group) and 
+% control variable (palcebo group) and the lower scorers did not see this 
+% difference. 
+% - However, the sample size is too small for to achieve good
+% generalisation. 
+% - As mentioned in b) the CI isn't necessarily representative of the
+% population. To increase the effectivness of this measurement a stratified
+% sample method could be implemented to ensure that a wide variety of
+% demographics and therefore a more accurate population distribution is
+% analysed. 
+% - Increasing sample size decreases sample distribution varience making 
+% significant statistican changes more observable.
+% Fitting a bimodel distribution is not an effective way to show the
+% distribution of the data. A better method could potentially be two seperate
+% normal distributions or a box plot. 
 
 

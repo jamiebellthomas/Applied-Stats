@@ -219,6 +219,12 @@ ylabel('PDF') % y-axis label
 
 %c)
 %COME BACK TO THIS
+
+% - The objective of the study is clear. To see if screning test is
+% accurate
+% - The hypothesis is verified. The high scorers in the screening test saw
+% a significant difference between drug and palcebo groups and the lower
+% scorers did not see this difference. 
 %%
 %Q2
 clear
