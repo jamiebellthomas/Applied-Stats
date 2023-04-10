@@ -151,11 +151,21 @@ m_walk4 = fitlm(prev_values,data);
 walk4_fit = zeros(N,1);
 beta_0 = m_walk4.Coefficients{1,1};
 beta_1 = m_walk4.Coefficients{2,1};
+prediction = zeros(N,1);
+for i = 2:N
+    prediction(i) = (beta_1.*walk3_fit(i-1))+beta_0;
+end
 subplot(2,2,1)
-plotResiduals(m_walk4)
+plot(1:N,prediction,"LineWidth",2)
+hold on
+plot(1:N,data)
+xlabel('Time [s]') % x-axis label
+ylabel('Position') % y-axis label
+title('Simulated random walk over time with a prediction line')
+legend('Simulated Data','Predictor')
 % Q-Q plot to check normality
 subplot(2,2,2)
-plotResiduals(m_walk4,'probability')
+plotResiduals(m_walk4)
 % residuals versus fitted values
 subplot(2,2,3)
 plotResiduals(m_walk4,'fitted')
@@ -172,6 +182,11 @@ plotResiduals(m_walk4,'lagged')
 % position. This would require two models:
 % x(t) = beta_0 + beta_1 * x(t-1) + residual_x
 % y(t) = beta_0' + beta_1' * y(t-1) + residual_y
+% - This will assume that x and y motions are independent and not capture
+% any interacitons between them.
+% - To get around this you could introduce an interaction term like so:
+% x(t) = beta_0 + beta_1 * x(t-1) + beta_2 * x(t-1) * y(t-1) + residual_x
+% y(t) = beta_0' + beta_1' * y(t-1) + beta_2 * x(t-1) * y(t-1) + residual_y
 
 % - Now there is an additional dimension there is another way this can be
 % done. It works of the same premis as having two models each modelling a
