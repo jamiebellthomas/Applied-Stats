@@ -470,15 +470,13 @@ disp('Therefore we cannot reject the null hypothesis.')
 %% 3iii)
 clc
 clear
-% Step 7: Interpret findings
-
 % Model in q is quite simple as there is only one explanitory variable
 % First step is to create some toy data. 
 % We will pick a distribution to base out data off and through the
 % investigation we will show how we can work out what this distribution is
 % Initialise a gamma distributiuon
 pd = makedist('Gamma','a',1,'b',1.3);
-% Initialise renaom data points and collect their pdf values
+% Initialise random data points and collect their pdf values
 sample = rand(1,2000)*5;
 data = pdf(pd,sample);
 %Introduce some "random" residuals
@@ -489,7 +487,6 @@ for i = 1:length(data)
     end
     data(i) = data(i) + residual;
 end
-%%
 % Step 1: Look at raw data and identify an appropriate distribution and 
 % link function for data
 % There are five main distibutions supported by the fitglm function:
@@ -504,22 +501,17 @@ end
 % example, the only candidate models that need to be considered are glm's
 % linking samples to a response via a gamma distribution and an inverse 
 % gaussian distribution. These will be examined now
-m_gamma = fitglm(sample,data,'Distribution','gamma')
+m_gamma = fitglm(sample,data,'Distribution','gamma');
 m_ig = fitglm(sample,data,'Distribution','inverse gaussian');
 % Step two:
-% For model selection, the AIC and Log Likelihood scores will be examined
+% For model selection, the AIC score will be examined
 disp('---')
 fprintf('Gamma model has an AIC score of %f \n',m_gamma.ModelCriterion.AIC)
 fprintf('IG model has an AIC score of %f \n',m_ig.ModelCriterion.AIC)
 disp('---')
-[h pvalue stat] = lratiotest(m_ig.LogLikelihood,m_gamma.LogLikelihood,3)
-
-fprintf('Gamma model has an LL score of %f \n',m_gamma.LogLikelihood)
-fprintf('IG model has an LL score of %f \n',m_ig.LogLikelihood)
+disp('Gamma model has a prefereable AIC score')
 disp('---')
-disp('Gamma model has a prefereable AIC and LL score')
-disp('---')
-% Step 3: Check the residual plots.
+% Step 3: Check the residual plots. These aren't reported in the example.
 % All these seem to be ok except for the plot of residuals vs the fitted
 % values. There seems to be some heteroscedastic behaviour slipping into 
 % the model (bottom left of the plot). This isn't necessarily a major issue
@@ -532,14 +524,17 @@ disp('---')
 % As there is only one explanitory variable this is very easy. The pValue
 % for both the x1 and intercept terms = 0 therefore we can reject the null
 % hypotheses that these values = 0.
-plotResiduals(m_gamma,'fitted','ResidualType','Deviance')
-% All that is left to do is right out the model equation and evaluate the
-% goodness of fit, with a 95% confidence interval 
+% Step 5: Model equation and evaluate the goodness of fit, with a 95% 
+% confidence interval 
 % Gamma distribution therefore link function = 1/mu
 % Rearranging: mu = 1/(beta_0 + x_i*beta_1)
-% Now let's evaluate this function
+% Now let's evaluate this function (Top right). This was done well in the
+% example case. This work will be repeated here. 
 beta_0 = m_gamma.Coefficients{1,1};
 beta_1 = m_gamma.Coefficients{2,1};
+fprintf('Model Equation: Y_i = 1/(%f + %f x_i)\n',beta_0,beta_1)
+% Define GLM format (derived from gamma distribution link function)
+% Fit central, upper and lower bounds for sample.
 glm = @(x,b0,b1) 1./(b0 + x.*b1);
 glm_fit = glm(sample,beta_0,beta_1);
 CIcoeffs = coefCI(m_gamma,0.05);
@@ -572,8 +567,9 @@ plotDiagnostics(m_gamma)
 % usefulness. Due to the dispersion of the data and the relatively level 
 % nature of the fitted GLM, it is highly likely that any prediction would 
 % be very inaccureate. 
-
-% The diagnostic plot (bittom right) shows there are multiple values over 
+% The statistical report in example offer no model diagnostics. The case
+% order of leverage plot will be shown now
+% The diagnostic plot (bottom right) shows there are multiple values over 
 % the recommended leverage threshold. However these values account for a 
 % small proportion of the data.
 t_leverage = 2*m_gamma.NumCoefficients/m_gamma.NumObservations;
