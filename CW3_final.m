@@ -78,7 +78,7 @@ disp("- Hypothesis test looks at if each parameter coefficient  = 0 (This is the
 disp("- pValue for x,y&xy = 0 therefore reject these null hypotheses")
 fprintf("- pValue for intercept term (beta_0) = %f \n",table2array(m5_int.Coefficients(1,4)))
 disp('- This means we accept the null hypothesis at almost any realistic significance level:')
-disp('beta_0 = 0')
+disp('- beta_0 = 0')
 x_coeff = table2array(m5_int.Coefficients(2,1));
 y_coeff = table2array(m5_int.Coefficients(3,1));
 xy_coeff = table2array(m5_int.Coefficients(4,1));
@@ -95,7 +95,7 @@ hold on
 scatter3(variables(:,1),variables(:,2),response,".","MarkerFaceColor","auto")
 legend('Fitted Prediction Surface','Data')
 xlabel('x')
-xlabel('y')
+ylabel('y')
 zlabel('response')
 title('Predicted model surface fitted to data')
 subplot(2,2,2)
@@ -103,7 +103,7 @@ plotResiduals(m5_int,"probability")
 subplot(2,2,3)
 scatter3(variables(:,3),variables(:,4),response,1)
 xlabel('a')
-xlabel('b')
+ylabel('b')
 zlabel('response')
 title('Response is independent of a & b')
 subplot(2,2,4)
@@ -112,4 +112,43 @@ disp("Model accurately captures data (it produced almost identical coefficients 
 %% 3ii)
 clc
 clear
+% Input case parameters
+p_a = 0.8;
+pp_a = p_a*(1-p_a);
+p_b = 0.6;
+pp_b = p_b*(1-p_b);
+n_a = 100;
+n_b = 50;
+% A 2 sample z-test tests if the mean of the two samples are the same.
+% So H_0: mu_a = mu_b
+% The wording of the example doesn't make it clear on if its testing to see
+% if the mean of coin A is significantly higher of significantly different
+% (whether it was a one or two -tailed test).
+% Significance level of 1%, doesn't specifically report on whether one coin
+% could be higher therefore a two tailed test will be performed. 
+alpha = 0.01;
+% Calculate the test statistic 
+test_stat = (p_a - p_b)/sqrt((pp_a/n_a)+(pp_b/n_b));
+upper = norminv(1-(alpha/2));
+lower = norminv(alpha/2);
+xx = -5:0.1:5;
+% Figure reported in the example provides no indication of the results of a
+% hypothesis test. It is unclear whether A is significantly higher at a one
+% percent level. This will be plotted now and the results will be printed. 
+plot(xx, normpdf(xx, 0, 1), '-', 'LineWidth', 2);
+hold on
+yL = get(gca,'YLim');
+line([upper, upper,lower, lower],[flip(yL) yL],'Color','k','LineWidth',0.5,'LineStyle','-')
+line([test_stat, test_stat],yL,'Color','k','LineWidth',2,'LineStyle','--','Color','r')
+legend('Sampling distribution','Threshold (1% significance, two-tailed)','Obervation')
+xlabel('Test statistic')
+ylabel('Sampling distribution')
+disp('The null hypothesis is that the means of the two samples are the same (mu_a = mu_b).')
+fprintf('The test statistic (%f) is less than the critical value (%f). \n',test_stat,upper)
+disp('Therefore we cannot reject the null hypothesis.')
+%% 3iii)
+clc
+clear
+
+
 

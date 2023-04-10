@@ -102,9 +102,11 @@ res_dis_walk2.sigma
 % sigma_2 = 0.993402
 % This explains why the walk 2 displacement is more irratic that walk 1
 %% 2d) 
+%Initialise model parameters and data array
 N = 10000;
 sigma = 0.1;
 data = zeros(1,N);
+%Simulate the walk
 for i = 2:N
     if abs(data(i-1)) < 1
             data(i) = data(i-1)+normrnd(0,sigma);
@@ -113,9 +115,9 @@ for i = 2:N
     mu = -0.05*data(i-1);
     data(i) = data(i-1)+normrnd(mu,sigma);
 end
+% Obtain an array for x(t-1) and fit a linear model
 prev_values = [0 data(1:end-1)];
 m_walk3 = fitlm(prev_values,data);
-
 walk3_fit = zeros(N,1);
 beta_0 = m_walk3.Coefficients{1,1};
 beta_1 = m_walk3.Coefficients{2,1};
@@ -124,47 +126,34 @@ for i = 2:N
 end
 plot(1:N,data)
 hold on
-plot(1:N, walk3_fit,"LineWidth",1,"LineStyle","--")
+plot(1:N, walk3_fit,"LineWidth",2,"LineStyle","--")
 legend('Simulated Data','Predictor')
 title('Simulated random walk over time with a prediction line') % title for plot
 xlabel('Time [s]') % x-axis label
 ylabel('Position') % y-axis label
 % 
 %% 2e)
-% I think this one, just add a +t to the model, this means SD of residuals
-% is dependent on fitted values. This should only violate one residual plot
-
-% Actually let's just set sigma to t and see what happens
-
+%Initialise model parameters and data array
 N = 10000;
 sigma = 0.1;
 data = zeros(1,N);
 % We're going to use a modified version of the function above except we're
-% going to introduce a a x(t-1) expression into the response term. This will
-%  introduce heteroscedasticity into the error term
+% going to introduce an x(t-1) expression into the response term. This will
+%  introduce heteroscedasticity into the model
 for i = 2:N
     if abs(data(i-1)) < 1
             data(i) = (data(i-1)+normrnd(0,sigma)*(1.5*data(i-1)+2.5));
             continue
     end
     mu = -0.05*data(i-1);
-    data(i) = (data(i-1)+normrnd(mu,sigma)*(1.5*data(i-1)+2.5));
-    
+    data(i) = (data(i-1)+normrnd(mu,sigma)*(1.5*data(i-1)+2.5));  
 end
-
+% Obtain an array for x(t-1) and fit a linear model
 prev_values = [0 data(1:end-1)];
-m_walk4 = fitlm(prev_values,data)
+m_walk4 = fitlm(prev_values,data);
 walk4_fit = zeros(N,1);
 beta_0 = m_walk4.Coefficients{1,1};
 beta_1 = m_walk4.Coefficients{2,1};
-
-for i = 3:N
-    walk4_fit(i) = (beta_1.*walk4_fit(i-1))+beta_0;
-end
-plot(1:N,data)
-hold on
-plot(1:N, walk4_fit,"LineWidth",1,"LineStyle","--")
-figure()
 subplot(2,2,1)
 plotResiduals(m_walk4)
 % Q-Q plot to check normality

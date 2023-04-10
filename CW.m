@@ -302,64 +302,58 @@ hold on
 
 N = 10000
 sigma = 0.1
-data = zeros(1,N-1)
+exp_dist = zeros(1,N-1)
 for i = 1:N-1
     if i == 1
         continue
     end
-    if abs(data(i-1)) < 1
-            data(i) = data(i-1)+normrnd(0,sigma);
+    if abs(exp_dist(i-1)) < 1
+            exp_dist(i) = exp_dist(i-1)+normrnd(0,sigma);
             continue
     end
-    mu = -0.05*data(i-1);
-    data(i) = data(i-1)+normrnd(mu,sigma);
+    mu = -0.05*exp_dist(i-1);
+    exp_dist(i) = exp_dist(i-1)+normrnd(mu,sigma);
 end
 
 %plot(range,data)
 hold on
-prev_values = [0 data(1:end-1)];
+prev_values = [0 exp_dist(1:end-1)];
 
-m3 = fitglm(range,data,"Distribution","normal")
+m3 = fitglm(range,exp_dist,"Distribution","normal")
 m3_predictions = (m3.Coefficients{2,1}.*range)+m3.Coefficients{1,1};
 plot(range,m3_predictions,"LineWidth",2.5)
 
-m4 = fitglm(prev_values,data)
+m4 = fitglm(prev_values,exp_dist)
 m4_predictions = (m4.Coefficients{2,1}.*prev_values)+m4.Coefficients{1,1};
 plot(range,m4_predictions)
 hold on
-plot(range,data)
+plot(range,exp_dist)
 legend('Predictions','True')
 %%
 plotResiduals(m4,"probability")
 %%
-scatter(prev_values,data,1)
+scatter(prev_values,exp_dist,1)
 %% Q3i)
-
 clc
 clear
-
 % This is about fitting a linear mode, we're just going to follow the
 % procedure in the lecture, the issue is generating data, the results show
 % there are two predictors and an interaction term.
-
 % Let's make a polynomial, with x,y&xy terms, and add a random normal dist
 % values, with a mean of zero, to each expression to represent residuals. 
 domain = 10;
 equation = @(x,y) x/5 + y/2 + x.*y/10;
 [xx yy] = meshgrid(-domain:0.1:domain);
-
-data = equation(xx,yy);
-for i = 1:size(data,1)
-    for j = 1:size(data,2)
-        data(i,j) = data(i,j) + normrnd(0,1);
+exp_dist = equation(xx,yy);
+for i = 1:size(exp_dist,1)
+    for j = 1:size(exp_dist,2)
+        exp_dist(i,j) = exp_dist(i,j) + normrnd(0,1);
     end
 end
-
-
 % Now we'll randomly select x,y,data triplets. We will extract 10% 
 % of the data for now
 %First let's generate the data indicies we'll extract.
-len = size(data,1)*size(data,2);
+len = size(exp_dist,1)*size(exp_dist,2);
 rand_idx = randperm(len);
 selected_idx = rand_idx(1:round(len/10));
 %Now let's extract the relevant data add store it
@@ -367,27 +361,25 @@ variables = [];
 response = [];
 xx_1d = xx(:);
 yy_1d = yy(:);
-data_1d = data(:);
+data_1d = exp_dist(:);
 for i = 1:length(selected_idx)
     index = selected_idx(i);
     % Now let's implement some irrelevant predictors by randomly drawing
     % values from x and y aswell as the relevant predictors
     random_idx = randi(length(data_1d));
     variable_data = [xx_1d(index) yy_1d(index) xx_1d(random_idx) yy_1d(random_idx)];
-
+    % Append all relevant data to matrices
     variables = [variables;variable_data];
     response = [response;data_1d(index)];
 end
 data_table = array2table(variables,"VariableNames",["x","y","a","b"])
 data_table.response = response
-%%
 % Step one:
 % Look at the raw data (scatter plots of the response vs each explanitory 
 % variable
-% I don't have the space to show it but it is clear that the response is
-% correlated to x and y from the plots and has no correlation to a and b.
-
-%Now it has been established that only two of the predictors are relevant,
+% Plot shows that response is independent of a and b and dependent on x and
+% y
+% Now it has been established that only two of the predictors are relevant,
 % there are two possible models that need to be considered. One which
 % includes an x-y treatment and one that does not
 m5 = fitlm(data_table,'ResponseVar','response','PredictorVars',{'x','y'})
@@ -418,7 +410,6 @@ disp("an interaction term is a higher quality.")
 % The next step is to check that the model assumptions hold via the
 % residual plots. Again, no space to plot this but all four key assumptions
 % hold up according to these plots.
-
 %Next step is to perform hypothesis tests on each model parameter. This was
 %done by fitlm, and reflected in the p_score.
 disp("- Hypothesis test looks at if each parameter coefficient  = 0 (This is the null)")
@@ -426,9 +417,9 @@ disp("- pValue for x,y&xy = 0 therefore reject these null hypotheses")
 fprintf("- pValue for intercept term (beta_0) = %f \n",table2array(m5_int.Coefficients(1,4)))
 disp('- This means we accept the null hypothesis at almost any realistic significance level:')
 disp('beta_0 = 0')
-x_coeff = table2array(m5_int.Coefficients(2,1))
-y_coeff = table2array(m5_int.Coefficients(3,1))
-xy_coeff = table2array(m5_int.Coefficients(4,1))
+x_coeff = table2array(m5_int.Coefficients(2,1));
+y_coeff = table2array(m5_int.Coefficients(3,1));
+xy_coeff = table2array(m5_int.Coefficients(4,1));
 fprintf('- Linear Model Equation: Y_i = %f x_i + %f y_i + %f x_i*y_i \n', ...
     x_coeff, y_coeff, xy_coeff)
 disp("Let's check the goodness of fit.")
@@ -439,33 +430,161 @@ hold on
 scatter3(variables(:,1),variables(:,2),response,".","MarkerFaceColor","auto")
 disp("...")
 disp("Model accurately captures data (it produced almost identical coefficients to the original equation)")
+%% 3ii)
+clc
+clear
+% Input case parameters
+p_a = 0.8;
+pp_a = p_a*(1-p_a);
+p_b = 0.6;
+pp_b = p_b*(1-p_b);
+n_a = 100;
+n_b = 50;
+% A 2 sample z-test tests if the mean of the two samples are the same.
+% So H_0: mu_a = mu_b
+% The wording of the example doesn't make it clear on if its testing to see
+% if the mean of coin A is significantly higher of significantly different
+% (whether it was a one or two -tailed test).
+% Significance level of 1%, doesn't specifically report on whether one coin
+% could be higher therefore a two tailed test will be performed. 
+alpha = 0.01;
+% Calculate the test statistic 
+test_stat = (p_a - p_b)/sqrt((pp_a/n_a)+(pp_b/n_b));
+upper = norminv(1-(alpha/2));
+lower = norminv(alpha/2);
+xx = -5:0.05:5;
+% Figure reported in the example provides no indication of the results of a
+% hypothesis test. It is unclear whether A is significantly higher at a one
+% percent level. This will be plotted now and the results will be printed. 
+plot(xx, normpdf(xx, 0, 1), '-', 'LineWidth', 2);
+hold on
+yL = get(gca,'YLim');
+line([upper, upper,lower, lower],[flip(yL) yL],'Color','k','LineWidth',0.5,'LineStyle','-')
+line([test_stat, test_stat],yL,'Color','k','LineWidth',2,'LineStyle','--','Color','r')
+legend('Sampling distribution','Threshold (1% significance, two-tailed)','Obervation')
+xlabel('Test statistic')
+ylabel('Sampling distribution')
+disp('The null hypothesis is that the means of the two samples are the same (mu_a = mu_b).')
+fprintf('The test statistic (%f) is less than the critical value (%f). \n',test_stat,upper)
+disp('Therefore we cannot reject the null hypothesis.')
+%% 3iii)
+clc
+clear
+% Step 7: Interpret findings
+
+% Model in q is quite simple as there is only one explanitory variable
+% First step is to create some toy data. 
+% We will pick a distribution to base out data off and through the
+% investigation we will show how we can work out what this distribution is
+% Initialise a gamma distributiuon
+pd = makedist('Gamma','a',1,'b',1.3);
+% Initialise renaom data points and collect their pdf values
+sample = rand(1,2000)*5;
+data = pdf(pd,sample);
+%Introduce some "random" residuals
+for i = 1:length(data)
+    residual = normrnd(0.06,0.06);
+    while (data(i) + residual) < 0
+        residual = normrnd(0.06,0.06);
+    end
+    data(i) = data(i) + residual;
+end
+%%
+% Step 1: Look at raw data and identify an appropriate distribution and 
+% link function for data
+% There are five main distibutions supported by the fitglm function:
+% normal, binomial, poisson, gamma & inverse gaussian.
+% Looking at the data (shown in the plot, top left), three of these can be 
+% discarded immediately.
+% - Data is exponentially distributed therefore it cannot be normal
+% - The data is continuous therefore it cannot be poisson
+% - The data is not related to proportions, therefore it cannot be binomial
+% - These leaves inverse gaussian and gamma. 
+% - As there is only a single quantitative explaintory varible in this
+% example, the only candidate models that need to be considered are glm's
+% linking samples to a response via a gamma distribution and an inverse 
+% gaussian distribution. These will be examined now
+m_gamma = fitglm(sample,data,'Distribution','gamma')
+m_ig = fitglm(sample,data,'Distribution','inverse gaussian');
+% Step two:
+% For model selection, the AIC and Log Likelihood scores will be examined
+disp('---')
+fprintf('Gamma model has an AIC score of %f \n',m_gamma.ModelCriterion.AIC)
+fprintf('IG model has an AIC score of %f \n',m_ig.ModelCriterion.AIC)
+disp('---')
+[h pvalue stat] = lratiotest(m_ig.LogLikelihood,m_gamma.LogLikelihood,3)
+
+fprintf('Gamma model has an LL score of %f \n',m_gamma.LogLikelihood)
+fprintf('IG model has an LL score of %f \n',m_ig.LogLikelihood)
+disp('---')
+disp('Gamma model has a prefereable AIC and LL score')
+disp('---')
+% Step 3: Check the residual plots.
+% All these seem to be ok except for the plot of residuals vs the fitted
+% values. There seems to be some heteroscedastic behaviour slipping into 
+% the model (bottom left of the plot). This isn't necessarily a major issue
+% due to the exponential nature of the curve being fitted, the varience of
+% the residuals can fluctuate across the range of predicted values
+% producing skewed results.
+% Futhermore, residual distributions are normal and there is no
+% autocorrelation. 
+% Step 4: Perform hypothesis tests on parameters. 
+% As there is only one explanitory variable this is very easy. The pValue
+% for both the x1 and intercept terms = 0 therefore we can reject the null
+% hypotheses that these values = 0.
+plotResiduals(m_gamma,'fitted','ResidualType','Deviance')
+% All that is left to do is right out the model equation and evaluate the
+% goodness of fit, with a 95% confidence interval 
+% Gamma distribution therefore link function = 1/mu
+% Rearranging: mu = 1/(beta_0 + x_i*beta_1)
+% Now let's evaluate this function
+beta_0 = m_gamma.Coefficients{1,1};
+beta_1 = m_gamma.Coefficients{2,1};
+glm = @(x,b0,b1) 1./(b0 + x.*b1);
+glm_fit = glm(sample,beta_0,beta_1);
+CIcoeffs = coefCI(m_gamma,0.05);
+upper = glm(sample,CIcoeffs(1,2),CIcoeffs(2,2));
+lower = glm(sample,CIcoeffs(1,1),CIcoeffs(2,1));
+subplot(2,2,1)
+scatter(sample,data,1);
+xlabel('length of message')
+ylabel('response time')
+title('Sample data')
+% Scatter plot of data
+subplot(2,2,2)
+scatter(sample,data,1);
+hold on
+plot(sort(sample),sort(glm_fit,"descend"),'LineWidth',2,'Color','k')
+plot(sort(sample),sort(upper,"descend"),'LineWidth',2,'Color','g')
+plot(sort(sample),sort(lower,"descend"),'LineWidth',2,'Color','r')
+xlabel('length of message')
+ylabel('response time')
+title('Git of GLM to sample data')
+legend('Sample data','GLM','Lower bound (95% interval)','Upper bound (95% interval)')
+% residuals versus fitted values
+subplot(2,2,3)
+plotResiduals(m_gamma,'fitted','ResidualType','Deviance')
+% auto-correlation (via lagged residuals)
+subplot(2,2,4)
+plotDiagnostics(m_gamma)
+% - The example claims that these plots can be used for prediction. This is a
+% bad idea. This curve shows a clear trend. That is about the extent of its 
+% usefulness. Due to the dispersion of the data and the relatively level 
+% nature of the fitted GLM, it is highly likely that any prediction would 
+% be very inaccureate. 
+
+% The diagnostic plot (bittom right) shows there are multiple values over 
+% the recommended leverage threshold. However these values account for a 
+% small proportion of the data.
+t_leverage = 2*m_gamma.NumCoefficients/m_gamma.NumObservations;
+indices = find(m_gamma.Diagnostics.Leverage > t_leverage);
+fprintf('%f percent of the fitted values exceed the recommended leverage threshold. \n',length(indices)*100/length(data))
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+ 
 
 
 

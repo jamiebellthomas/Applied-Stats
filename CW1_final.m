@@ -1,12 +1,12 @@
-%% Clear work space and read in drug/placebo data
+%% 1a) 
 clc
 clear
 rng('default')
+% Read in data
 placebo20 = readmatrix("placebo20.txt");
 drugs20 = readmatrix("drugs20.txt");
 placebo30 = readmatrix("placebo30.txt");
 drugs30 = readmatrix("drugs30.txt");
-%% 1a) 
 percentage_diff_20 = ((mean(drugs20)-mean(placebo20))/mean(placebo20))*100;
 percentage_diff_30 = ((mean(drugs30)-mean(placebo30))/mean(placebo30))*100;
 % Percentage difference of -0.799% between the means of the drug and
@@ -16,17 +16,16 @@ percentage_diff_30 = ((mean(drugs30)-mean(placebo30))/mean(placebo30))*100;
 % p_score of 59.13%. Therefore cannot reject H_0 (that mean of the drugs
 % and the placebo samples are the same)
 txt20 = sprintf('Percentage difference of %f for the scientists data', percentage_diff_20);
-txt20_h0 = sprintf('h_0 = %d for the scientists data therefore reject null hypothesis that the sample means are the same',h_20);
+txt20_h0 = sprintf(['h_0 = %d for the scientists data therefore reject null ' ...
+    'hypothesis that the sample means are the same (they are significantly different)'],h_20);
 txt30 = sprintf('Percentage difference of %f for the remaining data', percentage_diff_30);
-txt30_h0 = sprintf('h_0 = %d for the remaining data therefore accept null hypothesis that the sample means are the same',h_30);
-
-
+txt30_h0 = sprintf(['h_0 = %d for the remaining data therefore accept null ' ...
+    'hypothesis that the sample means are the same'],h_30);
 disp(txt20)
 disp(txt20_h0)
 disp("---")
 disp(txt30)
 disp(txt30_h0)
-
 %% 1b)
 % Method:
 % We're going to used a bootstrap method to create a bootstrap distribution
