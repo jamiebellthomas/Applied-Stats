@@ -22,7 +22,7 @@ disp("---")
 fprintf('Percentage difference of %f for the remaining data\n', percentage_diff_30);
 fprintf(['h_0 = %d for the remaining data therefore accept null ' ...
     'hypothesis that the sample means are the same\n'],h_30);
-
+disp("---")
 %% 1b)
 % Method:
 % We're going to used a bootstrap method to create a bootstrap distribution
@@ -119,7 +119,7 @@ ylabel('PDF, P(o)') % y-axis label
 % analysed. 
 % - Increasing sample size decreases sample distribution varience making 
 % significant statistican changes more observable.
-% Fitting a bimodel distribution is not an effective way to show the
+% - Fitting a bimodel distribution is not an effective way to show the
 % distribution of the data. A better method could potentially be two seperate
 % normal distributions or a box plot. 
 

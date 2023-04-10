@@ -26,7 +26,6 @@ m_walk2 = fitlm(prev_values_walk2,walk_data2,"linear");
 % If we look at the residual plots of these models, we see all model
 % assumptions hold. (This is for walk 1 - results are the same for walk 2)
 figure()
-
 subplot(2,2,1)
 plotResiduals(m_walk1)
 % Q-Q plot to check normality
@@ -39,7 +38,6 @@ plotResiduals(m_walk1,'fitted')
 subplot(2,2,4)
 plotResiduals(m_walk1,'lagged')
 title('Residual plots for walk 1')
-
 %Futhermore if we generate a set of predictions using the generated model
 %parameters, by iteratively building a spatial array as seen below
 walk1_fit = zeros(length(walk_data1),1);
@@ -48,13 +46,12 @@ walk1_beta_0 = m_walk1.Coefficients{1,1};
 walk1_beta_1 = m_walk1.Coefficients{2,1};
 walk2_beta_0 = m_walk2.Coefficients{1,1};
 walk2_beta_1 = m_walk2.Coefficients{2,1};
-
+% We can createa spatial array of predictions and plot them in the time 
+% domain to see if they are good fits for the data:
 for i = 2:length(walk_data1)
     walk1_fit(i) = (walk1_beta_1.*walk1_fit(i-1))+walk1_beta_0;
     walk2_fit(i) = (walk2_beta_1.*walk2_fit(i-1))+walk2_beta_0;
 end
-% We can createa spatial array of predictions and plot them in the time 
-% domain to see if they are good fits for the data:
 figure()
 subplot(1,2,1)
 scatter(range,walk_data1,1)
@@ -79,9 +76,9 @@ ylabel('x(t)') % y-axis label
 % The general form of the linear models are:
 % x(t) = beta_0 + beta_1* x(t-dt) + residual
 % The first dynamic to look at is the model parameters (beta). For walk 2,
-% beta_1 = 1.00, which accounts for why, generally speaking the displacement
+% beta_1 = 1.00, which accounts for why, generally the displacement
 % increases at a linear rate, as the next displacement equals the previous
-% position plus a scalar value (beta_0 = 0.1023)
+% position plus a scalar value - beta_0 (= 0.1023)
 
 % On the other hand, for walk one, beta_1 = 0.995 and beta_0 = -0.0100.
 % This explains why the spatial profile of the walk 1 decreases initially,
@@ -106,7 +103,7 @@ res_dis_walk2.sigma
 N = 10000;
 sigma = 0.1;
 data = zeros(1,N);
-%Simulate the walk
+%Simulate the walk using equations in question
 for i = 2:N
     if abs(data(i-1)) < 1
             data(i) = data(i-1)+normrnd(0,sigma);

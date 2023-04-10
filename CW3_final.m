@@ -6,14 +6,16 @@ domain = 10;
 equation = @(x,y) x/5 + y/2 + x.*y/10;
 [xx yy] = meshgrid(-domain:0.1:domain);
 data = equation(xx,yy);
-% This data xx,yyis perfectly fitted. Now let's introduce some random residuals
+% This data xx,yy is perfectly fitted. Now let's introduce some "random" 
+% residuals that are normally distributed
 for i = 1:size(data,1)
     for j = 1:size(data,2)
         data(i,j) = data(i,j) + normrnd(0,2);
     end
 end
 %Now we'll select random points of data to form our sample
-% determine what indicies we'll extract
+% determine what indicies we'll extract to form our sample
+% Our sample will be around 10% of the population
 len = size(data,1)*size(data,2);
 rand_idx = randperm(len);
 selected_idx = rand_idx(1:round(len/10));
@@ -37,7 +39,7 @@ data_table.response = response;
 % Step one:
 % - Look at the raw data (scatter plots of the response vs each explanitory 
 % variable
-% - Plots show that response is independent of a and b values.
+% - Plots show that response is independent of a and b values (bottom left)
 % - These will be excluded from the model.
 % - Step 2 - Decide on candidate models
 % - We need to determine if an interaction term if necessary. Two
@@ -70,6 +72,7 @@ disp("---")
 % In the example, no residual plots were evaluated. Two of the plots for
 % the selected model are shown in the plot. These show residuals are
 % normally distributed and that the model is homoscedastic.
+% (top right, bottom right)
 % Step 4 - Perform hypothesis tests on each model parameter. This was
 % done by the fitlm function, and reflected in the pValue.
 % Example does not comment on the meaning of the pValues
@@ -85,7 +88,7 @@ xy_coeff = table2array(m5_int.Coefficients(4,1));
 fprintf('- Linear Model Equation: Y_i = %f x_i + %f y_i + %f x_i*y_i \n', ...
     x_coeff, y_coeff, xy_coeff)
 % In the example, no effort was made to interpret the findings/evaluate the
-% linear model. This will be done now. (Step 5)
+% linear model. This will be done now. (Step 5, top right)
 disp("Let's check the goodness of fit:")
 fitted_equation = @(x,y) x_coeff*x + y_coeff*y + x.*y * xy_coeff;
 fitted_data = fitted_equation(xx,yy);
