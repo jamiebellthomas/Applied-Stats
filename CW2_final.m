@@ -169,3 +169,25 @@ plotResiduals(m_walk4,'lagged')
 % size of the fitted value. This is also the only assumption that doesn't
 % hold
 %% 2f)
+% - This is certainly achievable. 
+% - The simplest way is to create an equivelant model as in 2a) except for
+% the y coordinate. You can then combine the two models to produce an (x,y)
+% position. This would require two models:
+% x(t) = beta_0 + beta_1 * x(t-1) + residual_x
+% y(t) = beta_0' + beta_1' * y(t-1) + residual_y
+
+% - Now there is an additional dimension there is another way this can be
+% done. It works of the same premis as having two models each modelling a
+% different aspects of the particle's motion. Now the two features being
+% modeled are step size (r) and turning angle (theta)
+% - This is effectively a polar version of the cartesian system of equations
+% above.
+% - However theta can only take a finite range of values (0-360) for this
+% reason a standard linear model will no longer be appropriate, rather an
+% exponential or gamma distribution will beed to be used. 
+% So the general equations for this system would be as follows:
+% r(t) = beta_0 + beta_1 * r(t-1) + residual_r
+% IF EXPONENTIAL:
+% theta(t) = 1/(beta_0 + beta_1 * theta(t-1) + residual_theta)
+% IF GAMMA:
+% theta(t) = exp(beta_0 + beta_1 * theta(t-1) + residual_theta)

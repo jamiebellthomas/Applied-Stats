@@ -15,17 +15,14 @@ percentage_diff_30 = ((mean(drugs30)-mean(placebo30))/mean(placebo30))*100;
 [h_30,p_30] = ttest2(drugs30,placebo30, "Tail","right","Vartype","unequal");
 % p_score of 59.13%. Therefore cannot reject H_0 (that mean of the drugs
 % and the placebo samples are the same)
-txt20 = sprintf('Percentage difference of %f for the scientists data', percentage_diff_20);
-txt20_h0 = sprintf(['h_0 = %d for the scientists data therefore reject null ' ...
-    'hypothesis that the sample means are the same (they are significantly different)'],h_20);
-txt30 = sprintf('Percentage difference of %f for the remaining data', percentage_diff_30);
-txt30_h0 = sprintf(['h_0 = %d for the remaining data therefore accept null ' ...
-    'hypothesis that the sample means are the same'],h_30);
-disp(txt20)
-disp(txt20_h0)
+fprintf('Percentage difference of %f for the scientists data\n', percentage_diff_20);
+fprintf(['h_0 = %d for the scientists data therefore reject null ' ...
+    'hypothesis that the sample means are the same (they are significantly different)\n'],h_20);
 disp("---")
-disp(txt30)
-disp(txt30_h0)
+fprintf('Percentage difference of %f for the remaining data\n', percentage_diff_30);
+fprintf(['h_0 = %d for the remaining data therefore accept null ' ...
+    'hypothesis that the sample means are the same\n'],h_30);
+
 %% 1b)
 % Method:
 % We're going to used a bootstrap method to create a bootstrap distribution
