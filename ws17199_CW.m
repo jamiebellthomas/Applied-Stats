@@ -1,3 +1,4 @@
+%% WS19177 Summative Coursework Submission
 %% 1a) 
 clc
 clear

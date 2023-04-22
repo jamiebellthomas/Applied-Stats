@@ -179,6 +179,7 @@ for i = 1:length(data)
     end
     data(i) = data(i) + residual;
 end
+
 % Step 1: Look at raw data and identify an appropriate distribution and 
 % link function for data
 % There are five main distibutions supported by the fitglm function:
@@ -256,7 +257,7 @@ subplot(2,2,4)
 plotDiagnostics(m_gamma)
 % - The example claims that these plots can be used for prediction. This is a
 % bad idea. This curve shows a clear trend. That is about the extent of its 
-% usefulness. Due to the dispersion of the data and the relatively level 
+% usefulness. Due to the high variance of the data and the relatively level 
 % nature of the fitted GLM, it is highly likely that any prediction would 
 % be very inaccureate. 
 % The statistical report in example offer no model diagnostics. The case

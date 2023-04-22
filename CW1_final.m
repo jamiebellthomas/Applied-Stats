@@ -54,7 +54,7 @@ bCI_pd = quantile(bootstrap_ests_pd, [alpha/2 1-alpha/2])
 % 1.5% - 21.0%
 
 % This value can only be viewed as an estimate as a the bootstrap CI
-% represents the distribution of the sample (the 100 participants) and not
+% represents the distribution of the samples (the two groups of 50) and not
 % the population as a whole
 %% 1c)
 %Compile the datasets
@@ -78,20 +78,20 @@ hold on
 
 % Define distribution equation structure - mean and SD values will be 
 % fitted to this 
-pdf_normmix = @(compiled,p,mu1,mu2,sigma1,sigma2) p*normpdf(compiled,mu1,sigma1) + (1-p)*normpdf(compiled,mu2,sigma2);
+pdf_bimodal = @(compiled,p,mu1,mu2,sigma1,sigma2) p*normpdf(compiled,mu1,sigma1) + (1-p)*normpdf(compiled,mu2,sigma2);
 % Create starting estimates to ease the optimisers searching process
-pStart = 0.5;
-muStart = quantile(compiled,[.25 .75]);
-sigmaStart = sqrt(var(compiled) - .25*diff(muStart).^2);
-start = [pStart muStart sigmaStart sigmaStart];
+pInit = 0.5;
+muInit = quantile(compiled,[.25 .75]);
+sigmaInit = sqrt(var(compiled) - .25*diff(muInit).^2);
+start = [pInit muInit sigmaInit sigmaInit];
 
 % Raise max iterations to the algorithm converges at the correct value
 options = statset('MaxIter',400,'MaxFunEvals',800);
-% Use mle to get the parameters
-paramEsts = mle(compiled,'pdf',pdf_normmix,'Start',start,'Options',options);
+% Use mle to solve for correct parameters
+paramEsts = mle(compiled,'pdf',pdf_bimodal,'Start',start,'Options',options);
 % Set up created distribution so it can be plotted
 xgrid = linspace(0.8*min(compiled),1.1*max(compiled),200);
-pdfgrid = pdf_normmix(xgrid,paramEsts(1),paramEsts(2),paramEsts(3),paramEsts(4),paramEsts(5));
+pdfgrid = pdf_bimodal(xgrid,paramEsts(1),paramEsts(2),paramEsts(3),paramEsts(4),paramEsts(5));
 
 % Plot the hypothetical distribution
 plot(xgrid,pdfgrid,'-','LineWidth',2.5)

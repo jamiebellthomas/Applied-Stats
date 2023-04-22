@@ -24,19 +24,19 @@ prev_values_walk2 = [0;walk_data2(1:end-1)];
 m_walk1 = fitlm(prev_values_walk1,walk_data1,"linear");
 m_walk2 = fitlm(prev_values_walk2,walk_data2,"linear");
 % If we look at the residual plots of these models, we see all model
-% assumptions hold. (This is for walk 1 - results are the same for walk 2)
+% assumptions hold. (This is for walk 2 - results are the same for walk 1)
 figure()
 subplot(2,2,1)
-plotResiduals(m_walk1)
+plotResiduals(m_walk2)
 % Q-Q plot to check normality
 subplot(2,2,2)
-plotResiduals(m_walk1,'probability')
+plotResiduals(m_walk2,'probability')
 % residuals versus fitted values
 subplot(2,2,3)
-plotResiduals(m_walk1,'fitted')
+plotResiduals(m_walk2,'fitted')
 % auto-correlation (via lagged residuals)
 subplot(2,2,4)
-plotResiduals(m_walk1,'lagged')
+plotResiduals(m_walk2,'lagged')
 title('Residual plots for walk 1')
 %Futhermore if we generate a set of predictions using the generated model
 %parameters, by iteratively building a spatial array as seen below
@@ -187,19 +187,3 @@ plotResiduals(m_walk4,'lagged')
 % - To get around this you could introduce an interaction term like so:
 % x(t) = beta_0 + beta_1 * x(t-1) + beta_2 * x(t-1) * y(t-1) + residual_x
 % y(t) = beta_0' + beta_1' * y(t-1) + beta_2 * x(t-1) * y(t-1) + residual_y
-
-% - Now there is an additional dimension there is another way this can be
-% done. It works of the same premis as having two models each modelling a
-% different aspects of the particle's motion. Now the two features being
-% modeled are step size (r) and turning angle (theta)
-% - This is effectively a polar version of the cartesian system of equations
-% above.
-% - However theta can only take a finite range of values (0-360) for this
-% reason a standard linear model will no longer be appropriate, rather an
-% exponential or gamma distribution will beed to be used. 
-% So the general equations for this system would be as follows:
-% r(t) = beta_0 + beta_1 * r(t-1) + residual_r
-% IF EXPONENTIAL:
-% theta(t) = 1/(beta_0 + beta_1 * theta(t-1) + residual_theta)
-% IF GAMMA:
-% theta(t) = exp(beta_0 + beta_1 * theta(t-1) + residual_theta)
